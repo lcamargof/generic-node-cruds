@@ -1,7 +1,10 @@
 models = require './database/models'
+Promise = require 'bluebird'
+fs = Promise.promisifyAll(require 'fs')
 Concept = models.getConceptModel
 Receiver = models.getReceiverModel
 Unit = models.getUnitModel
+InvoiceTransactions = models.getInvoiceTransactionModel
 
 module.exports = (app) ->
 	app.use (req, res, next) ->
@@ -152,4 +155,41 @@ module.exports = (app) ->
 		.then((data) -> res.json {result: 'success'})
 		.catch (data) -> res.status(500).json {result: data}
 
+	### INVOICE EMULATED ###
+	app.get '/invoice', (req, res) ->
+		fs.readFileAsync("#{__dirname}/invoices.json")
+		.then((data) -> res.json JSON.parse(data.toString('utf8')) )
+		.catch (err) -> res.status(500).json result: err
 
+	# Invoice transactions
+	app.get '/invoicetransactions/:id', (req, res) ->
+		InvoiceTransactions.findAsync(_invoiceId: req.params.id)
+		.then((data) -> res.json data )
+		.catch (err) -> res.status(500).json result: err
+
+	app.post '/invoicetransactions', (req, res) ->
+		transaction = new InvoiceTransactions
+			amount: req.body.amount
+			reference: req.body.reference
+			_invoiceId: req.body.id
+		transaction.saveAsync()
+		.then((data) -> res.json data)
+		.catch (err) -> res.status().json data
+
+	app.post '/mock', (req, res) ->
+		wait = ->
+			percent = Math.random()
+
+			if percent < 0.1
+				Math.floor(Math.random() * 30000) + 10000;
+			else if percent < 0.3
+				Math.floor(Math.random() * 1000) + 500;
+			else
+				Math.floor(Math.random() * 500) + 1;
+
+		howLong = wait()
+
+		setTimeout ->
+			console.log 'recibi', howLong
+			res.send 'OKAY!!!'
+		, howLong

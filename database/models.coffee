@@ -41,6 +41,14 @@ receiverSchema = Schema
 # units collection
 unitSchema = Schema name: 'String'
 
+# Invoice Transaction collection
+invoiceTransactionSchema = Schema
+	date: type: Date, default: Date.now
+	amount: 'Number'
+	reference: type: String, default: 'n/a'
+	_invoiceId: 'Number'
+
 module.exports.getConceptModel = db.model 'Concept', conceptSchema
 module.exports.getReceiverModel = db.model 'Receiver', receiverSchema
 module.exports.getUnitModel = db.model 'Unit', unitSchema
+module.exports.getInvoiceTransactionModel = db.model 'InvoiceTransaction', invoiceTransactionSchema
